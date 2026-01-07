@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs"
 const authRoutes: FastifyPluginAsync = async (fastify) => {
 
     // LOGIN
-    fastify.post("/login", async (request, reply) => {
+    fastify.post("/login", { config: { public: true } }, async (request, reply) => {
        const { email, password } = request.body as {
        email: string,
        password: string

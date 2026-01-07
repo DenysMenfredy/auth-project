@@ -1,7 +1,15 @@
 <script setup lang="ts">
+import apiClient from "../api/"
+import { ref } from "vue"
+
+const email = ref<string>("")
+const password = ref<string>("")
 
 const handleLogin = (e: Event) => {
-    console.log(e.target)
+    apiClient.post('/auth/login', {
+        email: email.value,
+        password: password.value
+    })
 }
 
 </script>
@@ -13,10 +21,10 @@ const handleLogin = (e: Event) => {
         </div>
         <form @submit.prevent="handleLogin">
             <label for="email">Email:</label>
-            <input type="email" id="email" name="email" placeholder="Type your email" required>
+            <input v-model=email type="email" id="email" name="email" placeholder="Type your email" required>
             
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" placeholder="Type your password" required>
+            <input v-model=password type="password" id="password" name="password" placeholder="Type your password" required>
 
             <input type="submit" value="Log in">
         </form>

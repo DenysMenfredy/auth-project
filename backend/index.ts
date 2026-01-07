@@ -5,10 +5,14 @@ import authRoutes from './routes/auth.js'
 import jwtPlugin from './plugins/jwt.js'
 import envPlugin from "./plugins/env.js"
 import authGuardPlugin from './plugins/auth-guard.js'
+import cors from "@fastify/cors"
 
 const server = fastify({
     logger: true
 })
+
+server.register(cors)
+
 server.register(envPlugin)
 server.register(prismaPlugin)
 server.register(jwtPlugin)
