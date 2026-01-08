@@ -1,9 +1,26 @@
 <script setup lang="ts">
-import Login from "./pages/Login.vue"
+import { onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from './stores/auth'
+
+const router = useRouter()
+const authStore = useAuthStore()
+
+watch(() => authStore.isAuthenticated, (newVal) => {
+  if (!newVal && router.currentRoute.value.path !== '/login') {
+    router.push('/login')
+  } else if (newVal && router.currentRoute.value.path === '/login') {
+    router.push('/')
+  }
+})
+
+onMounted(() => {
+  // Watcher will handle initial navigation after auth init
+})
 </script>
 
 <template>
-    <Login />
+    <router-view />
 </template>
 
 <style scoped>

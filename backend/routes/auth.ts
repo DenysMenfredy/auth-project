@@ -23,11 +23,26 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         return { message: "Invalid credentials" }
     }
     const token = fastify.jwt.sign(
-        { sub: user.id, email: user.email },
+        { sub: user.id.toString(), email: user.email },
         { expiresIn: "1h" }
     )
-    return { token }
+    return { token, user: { name: user.name, email: user.email } }
     })
-   }
+
+    fastify.get('/me', async (request, reply) => {
+      // This route is protected by auth guard
+      const userId = parseInt(request.user.sub)
+
+      const user = await fastify.prisma.user.findUnique({
+        where: { id: userId }
+      })
+      
+      return {
+        name: user?.name,
+        email: user?.email
+      }
+    })
+
+}
    
    export default authRoutes

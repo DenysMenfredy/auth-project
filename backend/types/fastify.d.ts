@@ -6,8 +6,17 @@ declare module "fastify" {
     prisma: PrismaClient
     authenticate(request: FastifyRequest): Promise<void>
   }
-  
+
   interface FastifyContextConfig {
     public?: boolean
+  }
+}
+
+declare module "@fastify/jwt" {
+  interface FastifyJWT {
+    payload: {
+      sub: string
+      email: string
+    }
   }
 }
