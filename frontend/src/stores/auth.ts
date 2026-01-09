@@ -18,29 +18,51 @@ export const useAuthStore = defineStore('auth', () => {
   const isAuthenticated = computed(() => !!token.value && !!user.value)
 
   // Actions
-  const login = async (email: string, password: string) => {
-  isLoading.value = true
-  error.value = null
+    const login = async (email: string, password: string) => {
+      isLoading.value = true
+      error.value = null
   
-  try {
-    const response = await apiClient.post('/auth/login', {
-      email,
-      password
-    })
+    try {
+        const response = await apiClient.post('/auth/login', {
+        email,
+        password
+        })
     
-    // Get both token and user in one call
-    token.value = response.data.token
-    user.value = response.data.user
-    
-    localStorage.setItem('authToken', response.data.token)
-    
-    return true
-  } catch (err: any) {
-    error.value = err.response?.data?.message || 'Login failed'
-    return false
-  } finally {
-    isLoading.value = false
-  }
+        token.value = response.data.token
+        user.value = response.data.user
+        
+        localStorage.setItem('authToken', response.data.token)
+        
+        return true
+    } catch (err: any) {
+        // Parse different error types
+        if (err.response) {
+          // Server responded with error
+          const status = err.response.status
+          const message = err.response.data?.message
+          
+          if (status === 401) {
+            error.value = message || 'Invalid email or password'
+          } else if (status === 429) {
+            error.value = 'Too many login attempts. Please try again later.'
+          } else if (status >= 500) {
+            error.value = 'Server error. Please try again later.'
+          } else {
+            error.value = message || 'Login failed. Please try again.'
+          }
+        } else if (err.request) {
+          // Request made but no response
+          error.value = 'Unable to connect to server. Check your internet connection.'
+        } else {
+          // Something else happened
+          error.value = 'An unexpected error occurred. Please try again.'
+        }
+        
+        console.error('Login error:', err)
+        return false
+      } finally {
+        isLoading.value = false
+      }
 }
 
 const initializeAuth = async () => {

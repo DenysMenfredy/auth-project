@@ -9,12 +9,19 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
        email: string,
        password: string
     }
+
+    if (!email || !password) {
+        return reply.status(400).send({ 
+          message: 'Email and password are required' 
+        })
+    }
+
     const user = await fastify.prisma.user.findUnique({
         where: { email }
     })
     if(!user) {
         reply.code(401)
-        return { message: "Invalid credentials" }
+        return { message: "Invalid email or password" }
     }
     const isValid = await bcrypt.compare(password, user.password)
 

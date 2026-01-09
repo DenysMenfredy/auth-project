@@ -16,10 +16,6 @@ const handleLogout = async () => {
     <header class="dashboard-header">
       <h1>Dashboard</h1>
       <div class="user-section">
-        <div class="user-info">
-          <span class="welcome">Welcome back,</span>
-          <span class="user-name">{{ authStore.user?.name }}</span>
-        </div>
         <button @click="handleLogout" class="btn-logout">
           Logout
         </button>
@@ -29,6 +25,10 @@ const handleLogout = async () => {
     <main class="dashboard-content">
       <p>Email: {{ authStore.user?.email }}</p>
       <!-- Your dashboard content -->
+     <div class="user-info">
+          <span class="welcome">Welcome back,</span>
+          <span class="user-name">{{ authStore.user?.name }}</span>
+    </div>
     </main>
   </div>
 </template>
@@ -62,7 +62,7 @@ const handleLogout = async () => {
 .user-info {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
 }
 
 .welcome {

@@ -1,19 +1,47 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useToast } from 'vue-toastification'
 import { useAuthStore } from '../stores/auth'
 
 const router = useRouter()
 const authStore = useAuthStore()
+const toast = useToast()
 
 const email = ref<string>('')
 const password = ref<string>('')
 
 const handleLogin = async () => {
+  // Validation
+  if (!email.value || !email.value.trim()) {
+    toast.warning('Please enter your email address')
+    return
+  }
+
+  if (!password.value || !password.value.trim()) {
+    toast.warning('Please enter your password')
+    return
+  }
+
+  // Email format validation (optional but recommended)
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email.value)) {
+    toast.warning('Please enter a valid email address')
+    return
+  }
+
+  // Attempt login
   const success = await authStore.login(email.value, password.value)
+  console.log(success)
 
   if (success) {
+    console.log('success')
+    toast.success(`Welcome back, ${authStore.user?.name}!`)
     router.push('/')
+  } else {
+    console.log('no success')
+    // Error is already set in the store, display it
+    toast.error(authStore.error || 'Login failed. Please try again.')
   }
 }
 </script>
@@ -24,43 +52,39 @@ const handleLogin = async () => {
       <h3>Login</h3>
     </div>
     
-    <div v-if="authStore.error" class="error-message">
-      {{ authStore.error }}
-    </div>
+     <div class="login-form">
+       <label for="email">Email:</label>
+       <input
+         type="email"
+         id="email"
+         name="email"
+         v-model="email"
+         placeholder="Type your email"
+         :disabled="authStore.isLoading"
+         @keyup.enter="handleLogin"
+       >
 
-    <div class="login-form">
-      <label for="email">Email:</label>
-      <input
-        type="email"
-        id="email"
-        name="email"
-        v-model="email"
-        placeholder="Type your email"
-        required
-        :disabled="authStore.isLoading"
-      >
+       <label for="password">Password:</label>
+       <input
+         type="password"
+         id="password"
+         name="password"
+         v-model="password"
+         placeholder="Type your password"
+         :disabled="authStore.isLoading"
+         @keyup.enter="handleLogin"
+       >
 
-      <label for="password">Password:</label>
-      <input
-        type="password"
-        id="password"
-        name="password"
-        v-model="password"
-        placeholder="Type your password"
-        required
-        :disabled="authStore.isLoading"
-      >
-
-      <button
-        type="button"
-        class="btn-primary"
-        :disabled="authStore.isLoading"
-        @click="handleLogin"
-      >
-        <span v-if="authStore.isLoading" class="spinner"></span>
-        {{ authStore.isLoading ? 'Logging in...' : 'Log in' }}
-      </button>
-    </div>
+       <button
+         type="button"
+         @click="handleLogin"
+         class="btn-primary"
+         :disabled="authStore.isLoading"
+       >
+         <span v-if="authStore.isLoading" class="spinner"></span>
+         {{ authStore.isLoading ? 'Logging in...' : 'Log in' }}
+       </button>
+     </div>
   </div>
 </template>
 
@@ -104,7 +128,7 @@ input[type="password"] {
   font-size: 16px;
   transition: all 0.3s ease;
   background-color: #fafafa;
-  color: #333333;
+  color: #000;
 }
 
 input[type="email"]:hover,
@@ -182,30 +206,6 @@ input:disabled {
   }
 }
 
-.error-message {
-  background-color: #fee;
-  color: #c33;
-  padding: 12px 16px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: 14px;
-  border: 1px solid #fcc;
-  animation: slideDown 0.3s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Focus visible for accessibility */
 .btn-primary:focus-visible {
   outline: 2px solid #007bff;
   outline-offset: 2px;
