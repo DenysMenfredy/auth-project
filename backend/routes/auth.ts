@@ -43,11 +43,33 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       const user = await fastify.prisma.user.findUnique({
         where: { id: userId }
       })
-      
+
       return {
         name: user?.name,
         email: user?.email
       }
+    })
+
+    // REGISTER
+    fastify.post("/register", { config: { public: true } }, async (request, reply) => {
+        const { email, name, password }  = request.body as {
+            email: string,
+            name: string,
+            password: string
+        }
+        try {
+            const hashedPassword = await bcrypt.hash(password, 10)
+
+            const user = await fastify.prisma.user.create({
+            data: { email, name, password:hashedPassword }
+        })
+            reply.code(201)
+            return { id: user.id, name: user.name, email: user.email }
+        } catch(error) {
+            console.error(error)
+            reply.code(400)
+            return { "message": "Error creating user" }
+        }
     })
 
 }

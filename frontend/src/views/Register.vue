@@ -1,18 +1,26 @@
-<script setup lang="ts">
+ <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
-import { useAuthStore } from '../stores/auth'
+import apiClient from '../api'
 
 const router = useRouter()
-const authStore = useAuthStore()
 const toast = useToast()
 
+const name = ref<string>('')
 const email = ref<string>('')
 const password = ref<string>('')
+const isLoading = ref(false)
+const error = ref<string | null>(null)
 
-const handleLogin = async () => {
+const handleRegister = async (event?: Event) => {
+  if (event) event.preventDefault()
   // Validation
+  if (!name.value || !name.value.trim()) {
+    toast.warning('Please enter your name')
+    return
+  }
+
   if (!email.value || !email.value.trim()) {
     toast.warning('Please enter your email address')
     return
@@ -23,76 +31,121 @@ const handleLogin = async () => {
     return
   }
 
-  // Email format validation (optional but recommended)
+  // Email format validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email.value)) {
     toast.warning('Please enter a valid email address')
     return
   }
 
-  // Attempt login
-  const success = await authStore.login(email.value, password.value)
-  console.log(success)
+  // Password length validation
+  if (password.value.length < 6) {
+    toast.warning('Password must be at least 6 characters long')
+    return
+  }
 
-  if (success) {
-    console.log('success')
-    toast.success(`Welcome back, ${authStore.user?.name}!`)
-    router.push('/')
-  } else {
-    console.log('no success')
-    // Error is already set in the store, display it
-    toast.error(authStore.error || 'Login failed. Please try again.')
+  isLoading.value = true
+  error.value = null
+
+  try {
+    console.log('Making POST request to /auth/register with data:', {
+      name: name.value,
+      email: email.value,
+      password: password.value
+    })
+    const response = await apiClient.post('/auth/register', {
+      name: name.value,
+      email: email.value,
+      password: password.value
+    })
+    console.log('Registration successful, response:', response)
+
+    toast.success('Registration successful! Please log in.')
+    router.push('/login')
+  } catch (err: any) {
+    console.error('Registration failed, error:', err)
+    if (err.response) {
+      const status = err.response.status
+      const message = err.response.data?.message
+
+      if (status === 409) {
+        error.value = message || 'User already exists'
+      } else if (status >= 500) {
+        error.value = 'Server error. Please try again later.'
+      } else {
+        error.value = message || 'Registration failed. Please try again.'
+      }
+    } else if (err.request) {
+      error.value = 'Unable to connect to server. Check your internet connection.'
+    } else {
+      error.value = 'An unexpected error occurred. Please try again.'
+    }
+
+    toast.error(error.value)
+  } finally {
+    isLoading.value = false
   }
 }
 </script>
 
 <template>
-  <div class="login-wrapper">
+  <div class="register-wrapper">
     <div>
-      <h3>Login</h3>
+      <h3>Register</h3>
     </div>
-    
-     <div class="login-form">
-       <label for="email">Email:</label>
-       <input
-         type="email"
-         id="email"
-         name="email"
-         v-model="email"
-         placeholder="Type your email"
-         :disabled="authStore.isLoading"
-         @keyup.enter="handleLogin"
-       >
 
-       <label for="password">Password:</label>
-       <input
-         type="password"
-         id="password"
-         name="password"
-         v-model="password"
-         placeholder="Type your password"
-         :disabled="authStore.isLoading"
-         @keyup.enter="handleLogin"
-       >
+    <div class="register-form">
+      <label for="name">Name:</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        v-model="name"
+        placeholder="Type your name"
+        :disabled="isLoading"
+        @keyup.enter.prevent="handleRegister"
+      >
 
-       <button
-         type="button"
-         @click="handleLogin"
-         class="btn-primary"
-         :disabled="authStore.isLoading"
-       >
-         <span v-if="authStore.isLoading" class="spinner"></span>
-         {{ authStore.isLoading ? 'Logging in...' : 'Log in' }}
-       </button>
-       <RouterLink to="/register">
-        <span>Doesn't have an account? Create one.</span>
-       </RouterLink>
-     </div>
+      <label for="email">Email:</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        v-model="email"
+        placeholder="Type your email"
+        :disabled="isLoading"
+        @keyup.enter.prevent="handleRegister"
+      >
+
+      <label for="password">Password:</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        v-model="password"
+        placeholder="Type your password"
+        :disabled="isLoading"
+        @keyup.enter.prevent="handleRegister"
+      >
+
+      <button
+        type="button"
+        @click="handleRegister"
+        class="btn-primary"
+        :disabled="isLoading"
+      >
+        <span v-if="isLoading" class="spinner"></span>
+        {{ isLoading ? 'Registering...' : 'Register' }}
+      </button>
+      <RouterLink to="/login">
+        <span>Already have an account? Log in.</span>
+      </RouterLink>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.login-wrapper {
+.register-wrapper {
   max-width: 500px;
   margin: 50px auto;
   padding: 40px;
@@ -117,7 +170,7 @@ a {
             font-size: .8rem;
     }
 }
-.login-form {
+.register-form {
   display: flex;
   flex-direction: column;
 }
@@ -129,6 +182,7 @@ label {
   font-size: 14px;
 }
 
+input[type="text"],
 input[type="email"],
 input[type="password"] {
   padding: 12px 16px;
@@ -141,12 +195,14 @@ input[type="password"] {
   color: #000;
 }
 
+input[type="text"]:hover,
 input[type="email"]:hover,
 input[type="password"]:hover {
   border-color: #b0b0b0;
   background-color: #ffffff;
 }
 
+input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="password"]:focus {
   outline: none;
@@ -155,6 +211,7 @@ input[type="password"]:focus {
   box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
+input[type="text"]::placeholder,
 input[type="email"]::placeholder,
 input[type="password"]::placeholder {
   color: #999999;
