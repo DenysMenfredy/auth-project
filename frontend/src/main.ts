@@ -38,8 +38,16 @@ const MyPreset = definePreset(Aura, {
   components: {
     inputtext: {
       root: {
-        background: '#222222'
+        background: '#222222',
+        color: 'yellow'
       }
+    },
+    floatlabel: {
+        root: {
+            color: '#cccccc',
+            focusColor: '#ffffff',
+            invalidColor: '#ff0000'
+        }
     }
   }
 })
@@ -48,7 +56,12 @@ const app = createApp(App)
 
 app.use(PrimeVue, {
     theme: {
-        preset: MyPreset
+        preset: MyPreset,
+        options: {
+            prefix: 'p',
+            darkModeSelector: 'system',
+            cssLayer: false
+        }
     }
 })
 app.use(pinia)

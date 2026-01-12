@@ -7,6 +7,7 @@ import InputText from 'primevue/inputtext'
 import Password from 'primevue/password'
 import Button from 'primevue/button'
 import { Form, type FormSubmitEvent } from '@primevue/forms'
+import FloatLabel from 'primevue/floatlabel';
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -57,7 +58,7 @@ const handleLogin = async (_event: FormSubmitEvent) => {
     </div>
 
     <Form @submit="handleLogin" class="login-form">
-      <FloatLabel label="Email" variant="on">
+      <FloatLabel variant="on">
         <InputText
           id="email"
           name="email"
@@ -65,9 +66,10 @@ const handleLogin = async (_event: FormSubmitEvent) => {
           :disabled="authStore.isLoading"
           class="w-full"
         />
+        <label for="username">Username</label>
       </FloatLabel>
 
-      <FloatLabel label="Password" variant="on">
+      <FloatLabel variant="on">
         <Password
           id="password"
           name="password"
@@ -76,6 +78,7 @@ const handleLogin = async (_event: FormSubmitEvent) => {
           :disabled="authStore.isLoading"
           class="w-full"
         />
+        <label for="password">Password</label>
       </FloatLabel>
 
       <Button

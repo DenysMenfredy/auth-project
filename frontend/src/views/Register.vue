@@ -100,7 +100,7 @@ const handleRegister = async (_event: FormSubmitEvent) => {
     </div>
 
     <Form @submit="handleRegister" class="register-form">
-      <FloatLabel label="Name" variant="on">
+      <FloatLabel variant="on">
         <InputText
           id="name"
           name="name"
@@ -108,9 +108,10 @@ const handleRegister = async (_event: FormSubmitEvent) => {
           :disabled="isLoading"
           class="w-full"
         />
+        <label for="name">Name</label>
       </FloatLabel>
 
-      <FloatLabel label="Email" variant="on">
+      <FloatLabel variant="on">
         <InputText
           id="email"
           name="email"
@@ -118,9 +119,10 @@ const handleRegister = async (_event: FormSubmitEvent) => {
           :disabled="isLoading"
           class="w-full"
         />
+        <label for="email">Email</label>
       </FloatLabel>
 
-      <FloatLabel label="Password" variant="on">
+      <FloatLabel variant="on">
         <Password
           id="password"
           name="password"
@@ -128,6 +130,7 @@ const handleRegister = async (_event: FormSubmitEvent) => {
           :disabled="isLoading"
           class="w-full"
         />
+        <label for="password">Password</label>
       </FloatLabel>
 
       <Button
